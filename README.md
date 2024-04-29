@@ -38,3 +38,58 @@ The grid game is a strategic simulation game played on an adjustable grid, with 
 
 ### Purpose:
 This grid game serves as an educational tool to illustrate the principles of Q-learning, a form of reinforcement learning, in a straightforward and interactive manner. It allows players and observers to understand how decisions are influenced and refined based on past experiences, providing a clear example of how artificial intelligence can learn and adapt to achieve specific objectives in a controlled environment.
+
+### Game example:
+
+```
+Game:
+State: ((5, 2), (0, 1)), Action: up
+ |C| | | | 
+ | | | | | 
+ | | | | | 
+ | | | | | 
+ | | | | | 
+ | |P| | | 
+
+State: ((4, 2), (0, 1)), Action: up
+ |C| | | | 
+ | | | | | 
+ | | | | | 
+ | | | | | 
+ | |P| | | 
+ | | | | | 
+
+State: ((3, 2), (0, 1)), Action: up
+ |C| | | | 
+ | | | | | 
+ | | | | | 
+ | |P| | | 
+ | | | | | 
+ | | | | | 
+
+State: ((2, 2), (0, 1)), Action: up
+ |C| | | | 
+ | | | | | 
+ | |P| | | 
+ | | | | | 
+ | | | | | 
+ | | | | | 
+
+State: ((1, 2), (0, 1)), Action: up+left
+ |C| | | | 
+ | |P| | | 
+ | | | | | 
+ | | | | | 
+ | | | | | 
+ | | | | | 
+
+State: ((1, 2), (0, 1)), Action: up+left
+ |P| | | | 
+ | | | | | 
+ | | | | | 
+ | | | | | 
+ | | | | | 
+ | | | | | 
+
+Final State: ((0, 1), (0, 1)), Coin Collected: True, Score: 9
+```
