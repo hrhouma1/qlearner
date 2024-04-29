@@ -41,55 +41,58 @@ This grid game serves as an educational tool to illustrate the principles of Q-l
 
 ### Game example:
 
+Printout of one game from initial state to the final state when player reach the top row, in each state we show the player position (P), the coin position (C) and the action.
+
 ```
 Game:
-State: ((5, 2), (0, 1)), Action: up
- |C| | | | 
+State: ((5, 3), (0, 0)), Action: up
+C| | | | | 
  | | | | | 
  | | | | | 
  | | | | | 
  | | | | | 
- | |P| | | 
+ | | |P| | 
 
-State: ((4, 2), (0, 1)), Action: up
- |C| | | | 
+State: ((4, 3), (0, 0)), Action: up+left
+C| | | | | 
  | | | | | 
  | | | | | 
  | | | | | 
- | |P| | | 
- | | | | | 
-
-State: ((3, 2), (0, 1)), Action: up
- |C| | | | 
- | | | | | 
- | | | | | 
- | |P| | | 
- | | | | | 
+ | | |P| | 
  | | | | | 
 
-State: ((2, 2), (0, 1)), Action: up
- |C| | | | 
+State: ((3, 2), (0, 0)), Action: up+left
+C| | | | | 
+ | | | | | 
  | | | | | 
  | |P| | | 
  | | | | | 
  | | | | | 
+
+State: ((2, 1), (0, 0)), Action: up
+C| | | | | 
+ | | | | | 
+ |P| | | | 
+ | | | | | 
+ | | | | | 
  | | | | | 
 
-State: ((1, 2), (0, 1)), Action: up+left
- |C| | | | 
- | |P| | | 
- | | | | | 
- | | | | | 
- | | | | | 
- | | | | | 
-
-State: ((1, 2), (0, 1)), Action: up+left
+State: ((1, 1), (0, 0)), Action: up+left
+C| | | | | 
  |P| | | | 
  | | | | | 
  | | | | | 
  | | | | | 
  | | | | | 
+
+State: ((1, 1), (0, 0)), Action: up+left
+P| | | | | 
+ | | | | | 
+ | | | | | 
+ | | | | | 
+ | | | | | 
  | | | | | 
 
-Final State: ((0, 1), (0, 1)), Coin Collected: True, Score: 9
+Final State: ((0, 0), (0, 0)), Coin Collected: True, Score: 7
+
 ```
