@@ -116,10 +116,6 @@ def simulate_game(num_games, epsilon_start=1.0, epsilon_end=0.001, epsilon_decay
     - alpha (float): The learning rate for updating the Q-table.
 
     Returns:
-    - score (int): The final score of the game.
-    - position (tuple): The final position of the player.
-    - coin_position (tuple): The final position of the coin.
-    - collected_coin (bool): Whether the coin was collected.
     - q_table (dict): The updated Q-table after the game.
     """
     # Initialize epsilon
