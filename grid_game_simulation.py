@@ -172,39 +172,32 @@ def print_game():
 
     # Initialize the game
     position, coin_position = init_game()
+    state = (position, coin_position)
     total_cost = 0
     collected_coin = False
-    
-    while True:
-        # Stop on the last row
-        if position[0] == 0:
-            break
 
-        state = (position, coin_position)
-        moves = possible_moves(position)
+    # Print the initial board
+    print(f"Initial state: {state}")
+    print_board(position, coin_position, LAST_COLUMN, LAST_ROW)
 
-        # Use the Q-table to select the best action
-        best_action = max(moves, key=lambda a: q_table[state][a])
+    while not is_terminal(position):
+            state = (position, coin_position)
+            moves = possible_moves(position)
+            action = max(moves, key=lambda a: q_table[state][a])
 
-        next_position, move_cost = moves[best_action]
-        total_cost += move_cost
+            next_position, move_cost = moves[action]
+            total_cost += move_cost
+            collected_coin = next_position == coin_position
+            
+            position =  next_position
 
-        if next_position == coin_position and not collected_coin:
-            collected_coin = True
-
-        # Print the state, action, and board
-        print(f"State: {state}, Action: {best_action}")
-        print_board(position, coin_position, LAST_COLUMN, LAST_ROW)
-
-        position = next_position
+            # Print the state, action, and board
+            print(f"State: {state}, Action: {action}")
+            print_board(position, coin_position, LAST_COLUMN, LAST_ROW)
 
     # Calculate the score
     score = REWARD_COIN if collected_coin else 0
     score -= total_cost
-
-    # Print the last state, action, and board
-    print(f"State: {state}, Action: {best_action}")
-    print_board(position, coin_position, LAST_COLUMN, LAST_ROW)
 
     # Print the final state and whether the coin was collected
     print(f"Final State: {(position, coin_position)}, Coin Collected: {collected_coin}, Score: {score}")
