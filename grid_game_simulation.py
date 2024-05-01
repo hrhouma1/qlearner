@@ -3,23 +3,9 @@
 import numpy as np
 import random
 
-# Constants for the game
-#LAST_ROW = 2
-#LAST_COLUMN = 2
-#PRINT_SCORE_EVERY = 10
-#NUM_GAMES=100
-#EPSILON_DECAY=0.9
+from consts import COST_LEFT_RIGHT, EPSILON_DECAY, LAST_COLUMN, LAST_ROW, NUM_GAMES, REWARD_COIN
+from helpers import log_game_stats, print_board, print_final_q_table, print_q_table
 
-LAST_ROW = 5
-LAST_COLUMN = 5
-PRINT_SCORE_EVERY = 500
-NUM_GAMES=10000
-EPSILON_DECAY=0.9995
-
-RANDOM=False
-
-COST_LEFT_RIGHT = 1
-REWARD_COIN = 10
 
 def init_game():
     """
@@ -31,6 +17,7 @@ def init_game():
     coin_position = (0, random.randint(0, LAST_COLUMN - 1))
     start_position = (LAST_ROW, random.randint(0, LAST_COLUMN - 1))
     return start_position, coin_position
+
 
 def possible_moves(position):
     """
@@ -52,26 +39,20 @@ def possible_moves(position):
             moves['up+right'] = [(x - 1, y + 1), COST_LEFT_RIGHT]
     return moves
 
-def print_board(player_position, coin_position):
+
+def is_terminal(position):
     """
-    Print the current game board.
+    Determine if the game has reached a terminal state, which in this context
+    means that the position is on the last row of the grid.
 
     Parameters:
-    - player_position (tuple): The current position of the player.
-    - coin_position (tuple): The current position of the coin.
+        position (tuple): The current position of the player on the grid.
+
+    Returns:
+        bool: True if the position is terminal, False otherwise.
     """
-    # Initialize the board with empty spaces
-    board = np.array([[" " for _ in range(LAST_COLUMN + 1)] for _ in range(LAST_ROW + 1)])
-    
-    # Place the coin at its position
-    board[coin_position] = 'C'
-    
-    # Place the player at its position
-    board[player_position] = 'P'
-    
-    # Print the board
-    print("\n".join(["|".join(row) for row in board]))
-    print()
+    return position[0] == 0  # Assuming 0 represents the last row in the game's context
+
 
 def init_q_table():
     """
@@ -88,90 +69,100 @@ def init_q_table():
                 q_table[state] = {'up': 0, 'up+left': 0, 'up+right': 0}
     return q_table
 
-def print_q_table(q_table):
-    """
-    Print the entire Q-table in a compact format.
-
-    Parameters:
-    - q_table (dict): The Q-table to print.
-    """
-    print("Q-table:")
-    for state, actions in q_table.items():
-        state_actions_str = f"State: {state} -> "
-        for action, value in actions.items():
-            state_actions_str += f"{action}: {value:.2f}, "
-        # Remove the last comma and space, and print the state-action string
-        print(state_actions_str[:-2])
 
 def simulate_game(num_games, epsilon_start=1.0, epsilon_end=0.001, epsilon_decay=EPSILON_DECAY, gamma=0.9, alpha=0.1):
     """
-    Simulates games of the grid game using Q-learning.
+    Simulate a specified number of games using a Q-learning algorithm with an epsilon-greedy strategy.
 
     Parameters:
-    - num_games (int): The number of games to simulate.
-    - epsilon_start (float): The initial epsilon value for the epsilon-greedy strategy.
-    - epsilon_end (float): The minimum epsilon value.
-    - epsilon_decay (float): The rate at which epsilon decays.
-    - gamma (float): The discount factor for future rewards.
-    - alpha (float): The learning rate for updating the Q-table.
-
-    Returns:
-    - q_table (dict): The updated Q-table after the game.
+        num_games (int): The number of games to simulate.
+        epsilon_start (float): The initial epsilon value for the epsilon-greedy strategy.
+        epsilon_end (float): The minimum epsilon value.
+        epsilon_decay (float): The rate at which epsilon decays.
+        gamma (float): Discount factor for future rewards (how much future rewards are taken into account).
+        alpha (float): Learning rate for updating the Q-table.
     """
-    # Initialize epsilon
-    epsilon = epsilon_start if epsilon_start is not None else 1.0
+    epsilon = epsilon_start
 
     for game_index in range(num_games):
-        # Decay epsilon
-        epsilon *= epsilon_decay
-        epsilon = max(epsilon, epsilon_end)
-
-        # Set to epsilon 1 for ALWAYS random action
-        if RANDOM:
-            epsilon = 1
-
+        epsilon = max(epsilon * epsilon_decay, epsilon_end)
         position, coin_position = init_game()
         total_cost = 0
         collected_coin = False
-        
-        while True:
-            # Stop on the last row
-            if position[0] == 0:
-                break
 
+        while not is_terminal(position):
             state = (position, coin_position)
             moves = possible_moves(position)
-
-            # Epsilon-greedy action selection
-            if random.random() < epsilon:
-                action = random.choice(list(moves.keys()))
-            else:
-                action = max(moves, key=lambda a: q_table[state][a])
+            action = choose_action(state, moves, q_table, epsilon)
 
             next_position, move_cost = moves[action]
             total_cost += move_cost
-
-            if next_position == coin_position and not collected_coin:
-                collected_coin = True
-
+            collected_coin = next_position == coin_position
             next_state = (next_position, coin_position)
-            reward = REWARD_COIN if collected_coin else -move_cost
+            reward = calculate_reward(collected_coin, move_cost)
+
+            update_q_table(q_table, state, action, reward, next_state, alpha, gamma)
 
             position = next_position
 
-            # Q-learning update with gamma and alpha as parameters
-            best_next_action = max(q_table[next_state], key=lambda a: q_table[next_state][a], default=0)
-            q_table[state][action] += alpha * (reward + gamma * q_table[next_state][best_next_action] - q_table[state][action])
+        log_game_stats(game_index, collected_coin, total_cost, epsilon)
 
-        score = REWARD_COIN if collected_coin else 0
-        score -= total_cost
+    print_final_q_table(q_table, num_games)
 
-        if game_index % PRINT_SCORE_EVERY == 0:
-            print (f"Game number {game_index}, score: {score}, epcilon {epsilon}")
 
-    print(f"\nFinal Q-table after {num_games} games:")
-    print_q_table(q_table)
-    return q_table
+def choose_action(state, moves, q_table, epsilon):
+    """
+    Choose an action using an epsilon-greedy strategy from the available moves.
+
+    Parameters:
+        state (tuple): Current state of the game.
+        moves (dict): Possible moves from the current state.
+        q_table (dict): Current Q-table.
+        epsilon (float): Current epsilon value for exploration.
+
+    Returns:
+        str: Chosen action.
+    """
+    if random.random() < epsilon:
+        return random.choice(list(moves.keys()))
+    else:
+        return max(moves, key=lambda action: q_table.get(state, {}).get(action, 0))
+
+
+def calculate_reward(collected_coin, move_cost):
+    """
+    Calculate the reward based on the game's current state.
+
+    Parameters:
+        collected_coin (bool): Whether the coin was collected in the move.
+        move_cost (int): Cost of the move.
+
+    Returns:
+        int: Calculated reward.
+    """
+    return REWARD_COIN if collected_coin else -move_cost
+
+
+def update_q_table(q_table, state, action, reward, next_state, alpha, gamma):
+    """
+    Update the Q-table based on the action taken and the subsequent state.
+
+    Parameters:
+        q_table (dict): The Q-table to update.
+        state (tuple): The current state.
+        action (str): The action taken.
+        reward (int): The reward received.
+        next_state (tuple): The state after the action.
+        alpha (float): Learning rate.
+        gamma (float): Discount factor.
+
+    """
+    # Calculate the action that will return the Max Q ( e.g. the max sum of future rewoards )
+    best_next_action = max(q_table[next_state], key=lambda a: q_table[next_state][a], default=0)
+
+    # Update the Q table
+    q_table[state][action] += alpha * (reward + gamma * q_table[next_state][best_next_action] - q_table[state][action])
+  
 
 def print_game():
     """
@@ -203,7 +194,7 @@ def print_game():
 
         # Print the state, action, and board
         print(f"State: {state}, Action: {best_action}")
-        print_board(position, coin_position)
+        print_board(position, coin_position, LAST_COLUMN, LAST_ROW)
 
         position = next_position
 
@@ -213,10 +204,11 @@ def print_game():
 
     # Print the last state, action, and board
     print(f"State: {state}, Action: {best_action}")
-    print_board(position, coin_position)
+    print_board(position, coin_position, LAST_COLUMN, LAST_ROW)
 
     # Print the final state and whether the coin was collected
     print(f"Final State: {(position, coin_position)}, Coin Collected: {collected_coin}, Score: {score}")
+
 
 # Init empty Q table
 q_table = init_q_table()
