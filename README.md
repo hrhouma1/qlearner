@@ -1,5 +1,5 @@
-# qlearner
-Q learner example
+# Q Learner
+Q learning algorithm implemented using python.
 
 ### Grid Game Overview
 The grid game is a strategic simulation game played on an adjustable grid, with the default size being 2 rows by 3 columns. In this game, a player navigates to collect a coin while minimizing movement costs. The game showcases basic concepts of reinforcement learning through the use of a Q-learning algorithm.
